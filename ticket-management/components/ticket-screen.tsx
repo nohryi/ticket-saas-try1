@@ -14,6 +14,7 @@ import { Ticket } from "@/lib/types";
 import { fetchTickets, updateTicketStatus, createTicket } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 import SelectedTicketModal from "@/components/selected-ticket-modal";
+import SortMenu, { SortField, SortDirection } from "@/components/sort-menu";
 
 type FilterType = "all" | "open" | "completed";
 
@@ -38,6 +39,9 @@ export default function TicketScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [newTickets, setNewTickets] = useState<Set<string>>(new Set());
   const [showImageModal, setShowImageModal] = useState(false);
+  const [sortField, setSortField] = useState<SortField>("created_at");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [showSortMenu, setShowSortMenu] = useState(false);
   const [newTicket, setNewTicket] = useState<NewTicketForm>({
     submitter_name: "",
     title: "",
@@ -193,17 +197,45 @@ export default function TicketScreen() {
     );
   };
 
-  // Filter tickets based on status and search
-  const filteredTickets = tickets.filter((ticket) => {
-    // First ensure the ticket has a valid status
-    if (!ticket.status || !["open", "completed"].includes(ticket.status)) {
-      ticket.status = "open"; // Default to open if status is invalid
-    }
+  // Sort tickets based on current sort field and direction
+  const sortTickets = (tickets: Ticket[]) => {
+    return [...tickets].sort((a, b) => {
+      let compareA: string | number | Date = a[sortField] || "";
+      let compareB: string | number | Date = b[sortField] || "";
 
-    const matchesStatus =
-      filterType === "all" ? true : ticket.status === filterType;
-    return matchesStatus && searchTickets(ticket);
-  });
+      // Convert dates to comparable format
+      if (sortField === "created_at") {
+        compareA = new Date(a.created_at || 0);
+        compareB = new Date(b.created_at || 0);
+      }
+
+      // Handle string comparison
+      if (typeof compareA === "string" && typeof compareB === "string") {
+        const result = compareA.localeCompare(compareB);
+        return sortDirection === "asc" ? result : -result;
+      }
+
+      // Handle date comparison
+      if (compareA instanceof Date && compareB instanceof Date) {
+        const result = compareA.getTime() - compareB.getTime();
+        return sortDirection === "asc" ? result : -result;
+      }
+
+      return 0;
+    });
+  };
+
+  // Filter and sort tickets
+  const filteredTickets = sortTickets(
+    tickets.filter((ticket) => {
+      if (!ticket.status || !["open", "completed"].includes(ticket.status)) {
+        ticket.status = "open";
+      }
+      const matchesStatus =
+        filterType === "all" ? true : ticket.status === filterType;
+      return matchesStatus && searchTickets(ticket);
+    })
+  );
 
   // Get ticket counts - only count tickets with valid status
   const openCount = tickets.filter((t) => t.status === "open").length;
@@ -298,28 +330,38 @@ export default function TicketScreen() {
               </span>
             </button>
           </div>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder={translations.common.search}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-4 pr-10 py-2 border-2 border-gray-300 rounded-full w-[214px] text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-            <svg
-              className="w-4 h-4 text-gray-500 absolute right-6 top-1/2 transform -translate-y-1/2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder={translations.common.search}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-4 pr-10 py-2 border-2 border-gray-300 rounded-full w-[214px] text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
-            </svg>
+              <svg
+                className="w-4 h-4 text-gray-500 absolute right-6 top-1/2 transform -translate-y-1/2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+            <SortMenu
+              onSort={(field, direction) => {
+                setSortField(field);
+                setSortDirection(direction);
+              }}
+              currentSortField={sortField}
+              currentSortDirection={sortDirection}
+            />
           </div>
         </div>
         <button
@@ -331,16 +373,16 @@ export default function TicketScreen() {
       </div>
 
       {/* Tickets grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {filteredTickets.map((ticket) => (
           <div
             key={ticket.id}
-            className="bg-white rounded-lg cursor-pointer hover:shadow-lg transition-shadow border border-gray-300 overflow-hidden group min-w-[200px] relative pb-[32px]"
+            className="bg-white rounded-lg cursor-pointer hover:shadow-lg transition-all border-2 border-[#FF6F61]/40 overflow-hidden group min-w-[200px] relative pb-[32px] hover:border-[#FF6F61]/60"
             onClick={(e) => handleTicketClick(ticket, e)}
           >
-            <div className="relative flex justify-between h-[32px] border-b border-gray-200 bg-[#FF6F61]/10">
+            <div className="relative flex justify-between h-[32px] border-b border-[#FF6F61]/40 bg-[#FF6F61]/35">
               <div className="flex-1 group/title relative">
-                <h3 className="text-[13px] text-gray-900 font-medium leading-tight p-2.5 whitespace-nowrap">
+                <h3 className="text-[13px] text-gray-900 font-semibold tracking-tight px-2.5 h-[32px] flex items-center whitespace-nowrap">
                   {ticket.title.length > 28
                     ? `${ticket.title.slice(0, 28)}...`
                     : ticket.title}
@@ -416,10 +458,7 @@ export default function TicketScreen() {
             </div>
 
             {/* Action buttons */}
-            <div
-              className="absolute bottom-0 left-0 right-0 p-2.5 bg-gray-50 border-t border-gray-200"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <div className="absolute bottom-0 left-0 right-0 p-2.5 bg-white flex gap-2">
               {ticket.status === "open" ? (
                 <button
                   onClick={() =>

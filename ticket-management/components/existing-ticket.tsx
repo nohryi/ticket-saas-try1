@@ -28,10 +28,10 @@ export default function ExistingTicket({
   };
 
   return (
-    <div className="bg-white rounded-lg overflow-hidden min-w-[300px] relative pb-[32px]">
-      <div className="relative flex justify-between h-[32px] border-b border-gray-200 bg-[#FF6F61]/10">
+    <div className="bg-white rounded-lg overflow-hidden min-w-[300px] relative pb-[32px] border-2 border-[#FF6F61]/40 shadow-md hover:shadow-lg transition-shadow">
+      <div className="relative flex justify-between h-[32px] border-b border-[#FF6F61]/40 bg-[#FF6F61]/35">
         <div className="flex-1">
-          <h3 className="text-[13px] text-gray-900 font-medium leading-tight p-2.5">
+          <h3 className="text-[13px] text-gray-900 font-semibold tracking-tight px-2.5 h-[32px] flex items-center">
             {ticket.title}
           </h3>
         </div>
@@ -115,7 +115,7 @@ export default function ExistingTicket({
       </div>
 
       {/* Action buttons */}
-      <div className="absolute bottom-0 left-0 right-0 p-2.5 bg-gray-50 border-t border-gray-200 flex gap-2">
+      <div className="absolute bottom-0 left-0 right-0 p-2.5 bg-white flex gap-2">
         {ticket.status === "open" ? (
           <button
             onClick={() => handleStatusUpdate("completed")}
