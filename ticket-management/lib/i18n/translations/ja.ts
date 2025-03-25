@@ -1,0 +1,66 @@
+export const ja = {
+  common: {
+    search: "チケットを検索",
+    status: {
+      open: "未対応",
+      completed: "完了",
+      all: "すべて",
+    },
+    priority: {
+      high: "高",
+      medium: "中",
+      low: "低",
+    },
+    actions: {
+      create: "チケット作成",
+      update: "更新",
+      cancel: "キャンセル",
+      save: "保存",
+      delete: "削除",
+      complete: "完了",
+      reopen: "再開",
+      close: "閉じる",
+    },
+  },
+  tickets: {
+    title: "チケット",
+    newTicket: "新規チケット",
+    details: {
+      submitter: "提出者",
+      location: "場所",
+      priority: "優先度",
+      status: "状態",
+      created: "作成日時",
+      updated: "更新日時",
+      description: "説明",
+      image: "画像",
+    },
+    filters: {
+      all: "すべてのチケット",
+      open: "未対応のチケット",
+      completed: "完了したチケット",
+    },
+    form: {
+      title: "タイトル",
+      submitterName: "提出者名",
+      location: "場所",
+      priority: "優先度",
+      description: "説明",
+      image: "画像",
+    },
+  },
+  header: {
+    settings: "設定",
+    language: "言語",
+  },
+  languages: {
+    en: "英語",
+    fr: "フランス語",
+    de: "ドイツ語",
+    zh: "中国語",
+    ja: "日本語",
+    tr: "トルコ語",
+    es: "スペイン語",
+    yue: "広東語",
+  },
+};

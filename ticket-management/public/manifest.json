@@ -1,0 +1,16 @@
+{
+  "name": "Ticket Management System",
+  "short_name": "Tickets",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "theme_color": "#FF6F61",
+  "background_color": "#ffffff",
+  "start_url": "/",
+  "display": "standalone"
+}

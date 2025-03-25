@@ -1,0 +1,66 @@
+export const en = {
+  common: {
+    search: "Search tickets",
+    status: {
+      open: "Open",
+      completed: "Completed",
+      all: "All",
+    },
+    priority: {
+      high: "High",
+      medium: "Medium",
+      low: "Low",
+    },
+    actions: {
+      create: "Create Ticket",
+      update: "Update",
+      cancel: "Cancel",
+      save: "Save",
+      delete: "Delete",
+      complete: "Complete",
+      reopen: "Reopen",
+      close: "Close",
+    },
+  },
+  tickets: {
+    title: "Tickets",
+    newTicket: "New Ticket",
+    details: {
+      submitter: "Submitter",
+      location: "Location",
+      priority: "Priority",
+      status: "Status",
+      created: "Created",
+      updated: "Updated",
+      description: "Description",
+      image: "Image",
+    },
+    filters: {
+      all: "All Tickets",
+      open: "Open Tickets",
+      completed: "Completed Tickets",
+    },
+    form: {
+      title: "Title",
+      submitterName: "Submitter Name",
+      location: "Location",
+      priority: "Priority",
+      description: "Description",
+      image: "Image",
+    },
+  },
+  header: {
+    settings: "Settings",
+    language: "Language",
+  },
+  languages: {
+    en: "English",
+    fr: "French",
+    de: "German",
+    zh: "Chinese",
+    ja: "Japanese",
+    tr: "Turkish",
+    es: "Spanish",
+    yue: "Cantonese",
+  },
+};
