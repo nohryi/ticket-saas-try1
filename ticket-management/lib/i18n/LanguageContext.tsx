@@ -3,7 +3,17 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { en } from "./translations/en";
 
-type Language = "en" | "fr" | "de" | "zh" | "ja" | "tr" | "es" | "yue";
+type Language =
+  | "en"
+  | "fr"
+  | "de"
+  | "zh"
+  | "ja"
+  | "tr"
+  | "es"
+  | "yue"
+  | "ar"
+  | "pt";
 
 interface LanguageContextType {
   language: Language;

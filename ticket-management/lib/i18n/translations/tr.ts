@@ -1,0 +1,66 @@
+export const tr = {
+  common: {
+    search: "Bilet ara",
+    status: {
+      open: "Açık",
+      completed: "Tamamlandı",
+      all: "Tümü",
+    },
+    priority: {
+      high: "Yüksek",
+      medium: "Orta",
+      low: "Düşük",
+    },
+    actions: {
+      create: "Bilet Oluştur",
+      update: "Güncelle",
+      cancel: "İptal",
+      save: "Kaydet",
+      delete: "Sil",
+      complete: "Tamamla",
+      reopen: "Yeniden Aç",
+      close: "Kapat",
+    },
+  },
+  tickets: {
+    title: "Biletler",
+    newTicket: "Yeni Bilet",
+    details: {
+      submitter: "Oluşturan",
+      location: "Konum",
+      priority: "Öncelik",
+      status: "Durum",
+      created: "Oluşturulma",
+      updated: "Güncellenme",
+      description: "Açıklama",
+      image: "Resim",
+    },
+    filters: {
+      all: "Tüm Biletler",
+      open: "Açık Biletler",
+      completed: "Tamamlanan Biletler",
+    },
+    form: {
+      title: "Başlık",
+      submitterName: "Oluşturan Adı",
+      location: "Konum",
+      priority: "Öncelik",
+      description: "Açıklama",
+      image: "Resim",
+    },
+  },
+  header: {
+    settings: "Ayarlar",
+    language: "Dil",
+  },
+  languages: {
+    en: "İngilizce",
+    fr: "Fransızca",
+    de: "Almanca",
+    zh: "Çince",
+    ja: "Japonca",
+    tr: "Türkçe",
+    es: "İspanyolca",
+    yue: "Kantonca",
+  },
+};

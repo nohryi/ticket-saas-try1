@@ -2,17 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ORIGINAL STYLES (for reverting):
 body {
   font-family: Arial, Helvetica, sans-serif;
 }
+*/
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-}
-
+/* Optimized typography for restaurant operators */
 @layer base {
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Headers - Using semibold for better visibility */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-semibold tracking-tight;
+  }
+
+  h1 {
+    @apply text-2xl md:text-3xl;
+  }
+  h2 {
+    @apply text-xl md:text-2xl;
+  }
+  h3 {
+    @apply text-lg md:text-xl;
+  }
+
+  /* Make buttons and interactive elements more prominent */
+  button,
+  .button {
+    @apply font-medium;
+  }
+
+  /* Improve form field readability */
+  input,
+  select,
+  textarea {
+    @apply text-base font-normal;
+  }
+
   :root {
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
@@ -90,5 +131,11 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
 }

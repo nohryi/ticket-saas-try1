@@ -1,0 +1,66 @@
+export const yue = {
+  common: {
+    search: "搵工單",
+    status: {
+      open: "開放",
+      completed: "完成",
+      all: "全部",
+    },
+    priority: {
+      high: "高",
+      medium: "中",
+      low: "低",
+    },
+    actions: {
+      create: "開新工單",
+      update: "更新",
+      cancel: "取消",
+      save: "保存",
+      delete: "刪除",
+      complete: "完成",
+      reopen: "重開",
+      close: "關閉",
+    },
+  },
+  tickets: {
+    title: "工單",
+    newTicket: "新工單",
+    details: {
+      submitter: "提交人",
+      location: "地點",
+      priority: "優先級",
+      status: "狀態",
+      created: "建立時間",
+      updated: "更新時間",
+      description: "描述",
+      image: "圖片",
+    },
+    filters: {
+      all: "全部工單",
+      open: "開放工單",
+      completed: "完成工單",
+    },
+    form: {
+      title: "標題",
+      submitterName: "提交人名",
+      location: "地點",
+      priority: "優先級",
+      description: "描述",
+      image: "圖片",
+    },
+  },
+  header: {
+    settings: "設定",
+    language: "語言",
+  },
+  languages: {
+    en: "英文",
+    fr: "法文",
+    de: "德文",
+    zh: "中文",
+    ja: "日文",
+    tr: "土耳其文",
+    es: "西班牙文",
+    yue: "粵語",
+  },
+};

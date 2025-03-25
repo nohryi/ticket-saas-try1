@@ -37,28 +37,38 @@ export default function ExistingTicket({
         </div>
         {ticket.status === "completed" && (
           <span className="absolute right-2.5 top-1/2 -translate-y-1/2 shrink-0 px-1.5 py-0.5 rounded-full text-[10px] bg-green-50 text-green-600 border border-green-200 font-medium">
-            Completed
+            {translations.common.status.completed}
           </span>
         )}
       </div>
 
       <div className="space-y-1.5 p-2.5">
-        <p className="text-[11px] text-gray-600">
-          <span className="text-gray-500">Status:</span>{" "}
-          {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
+        <p className="!text-[11px] !leading-none text-gray-600">
+          <span className="!text-[11px] !leading-none text-gray-500">
+            {translations.tickets.details.status}:
+          </span>{" "}
+          {ticket.status === "open"
+            ? translations.common.status.open
+            : translations.common.status.completed}
         </p>
-        <p className="text-[11px] text-gray-600">
-          <span className="text-gray-500">Submitter:</span>{" "}
+        <p className="!text-[11px] !leading-none text-gray-600">
+          <span className="!text-[11px] !leading-none text-gray-500">
+            {translations.tickets.details.submitter}:
+          </span>{" "}
           {ticket.submitter_name}
         </p>
-        <p className="text-[11px] text-gray-600">
-          <span className="text-gray-500">Created:</span>{" "}
+        <p className="!text-[11px] !leading-none text-gray-600">
+          <span className="!text-[11px] !leading-none text-gray-500">
+            {translations.tickets.details.created}:
+          </span>{" "}
           {ticket.created_at ? formatDate(ticket.created_at) : "N/A"}
         </p>
-        <p className="text-[11px] text-gray-600">
-          <span className="text-gray-500">Priority:</span>{" "}
+        <p className="!text-[11px] !leading-none text-gray-600">
+          <span className="!text-[11px] !leading-none text-gray-500">
+            {translations.tickets.details.priority}:
+          </span>{" "}
           <span
-            className={`font-medium ${
+            className={`!text-[11px] !leading-none font-medium ${
               ticket.priority.toLowerCase() === "high"
                 ? "text-red-500"
                 : ticket.priority.toLowerCase() === "medium"
@@ -66,27 +76,37 @@ export default function ExistingTicket({
                 : "text-green-500"
             }`}
           >
-            {ticket.priority.charAt(0).toUpperCase() +
-              ticket.priority.slice(1).toLowerCase()}
+            {ticket.priority === "High"
+              ? translations.common.priority.high
+              : ticket.priority === "Medium"
+              ? translations.common.priority.medium
+              : translations.common.priority.low}
           </span>
         </p>
-        <p className="text-[11px] text-gray-600">
-          <span className="text-gray-500">Location:</span> {ticket.location}
+        <p className="!text-[11px] !leading-none text-gray-600">
+          <span className="!text-[11px] !leading-none text-gray-500">
+            {translations.tickets.details.location}:
+          </span>{" "}
+          {ticket.location}
         </p>
         <div className="pt-1">
-          <p className="text-[11px] text-gray-500 mb-1">Description:</p>
-          <p className="text-[11px] text-gray-600 whitespace-pre-wrap">
+          <p className="!text-[11px] !leading-none text-gray-500 mb-1">
+            {translations.tickets.details.description}:
+          </p>
+          <p className="!text-[11px] !leading-none text-gray-600 whitespace-pre-wrap">
             {ticket.description}
           </p>
         </div>
 
         {ticket.image_url && (
           <div className="mt-2">
-            <p className="text-[11px] text-gray-500 mb-1">Image:</p>
+            <p className="text-[11px] text-gray-500 mb-1">
+              {translations.tickets.details.image}:
+            </p>
             <div className="relative w-full h-40 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
               <img
                 src={ticket.image_url}
-                alt="Issue"
+                alt={translations.tickets.details.image}
                 className="w-full h-full object-contain"
               />
             </div>
@@ -101,21 +121,21 @@ export default function ExistingTicket({
             onClick={() => handleStatusUpdate("completed")}
             className="flex-1 px-2 py-0.5 text-[10px] font-medium text-white bg-[#FF6F61] rounded-full hover:bg-[#FF6F61]/90 transition-colors"
           >
-            Complete
+            {translations.common.actions.complete}
           </button>
         ) : (
           <button
             onClick={() => handleStatusUpdate("open")}
             className="flex-1 px-2 py-0.5 text-[10px] font-medium text-white bg-blue-500 rounded-full hover:bg-blue-600 transition-colors"
           >
-            Reopen
+            {translations.common.actions.reopen}
           </button>
         )}
         <button
           onClick={onClose}
           className="flex-1 px-2 py-0.5 text-[10px] font-medium text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
         >
-          Close
+          {translations.common.actions.close}
         </button>
       </div>
     </div>

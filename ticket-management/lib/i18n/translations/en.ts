@@ -62,5 +62,7 @@ export const en = {
     tr: "Turkish",
     es: "Spanish",
     yue: "Cantonese",
+    ar: "Arabic",
+    pt: "Portuguese",
   },
 };

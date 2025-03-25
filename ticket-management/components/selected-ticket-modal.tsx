@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { Ticket } from "@/lib/mock-data";
 import { formatDate } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface SelectedTicketModalProps {
   ticket: Ticket;
@@ -15,6 +16,8 @@ const SelectedTicketModal = memo(function SelectedTicketModal({
   onStatusUpdate,
   onImageClick,
 }: SelectedTicketModalProps) {
+  const { translations } = useLanguage();
+
   return (
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center"
@@ -54,46 +57,54 @@ const SelectedTicketModal = memo(function SelectedTicketModal({
         </div>
 
         {/* Content with smaller text */}
-        <div className="p-3 space-y-2 rounded-b-lg">
+        <div className="p-3 space-y-2 rounded-b-lg text-[10px] !leading-normal">
           {/* Submitter Name */}
           <div>
-            <p className="text-[10px] font-medium text-gray-600">
-              Submitted By
+            <p className="!text-[10px] text-gray-500">
+              {translations.tickets.details.submitter}:
             </p>
-            <p className="text-xs">{ticket.submitter_name}</p>
+            <p className="!text-[10px]">{ticket.submitter_name}</p>
           </div>
 
           {/* Dates and Priority Section */}
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <p className="text-[10px] font-medium text-gray-600">
-                Ticket Date
+              <p className="!text-[10px] text-gray-500">
+                {translations.tickets.details.created}:
               </p>
-              <p className="text-xs">{formatDate(ticket.created_at)}</p>
+              <p className="!text-[10px]">{formatDate(ticket.created_at)}</p>
             </div>
             <div>
-              <p className="text-[10px] font-medium text-gray-600">Priority</p>
-              <p className="text-xs">{ticket.priority}</p>
+              <p className="!text-[10px] text-gray-500">
+                {translations.tickets.details.priority}:
+              </p>
+              <p className="!text-[10px]">{ticket.priority}</p>
             </div>
           </div>
 
           {/* Location */}
           <div>
-            <p className="text-[10px] font-medium text-gray-600">Location</p>
-            <p className="text-xs">{ticket.location}</p>
+            <p className="!text-[10px] text-gray-500">
+              {translations.tickets.details.location}:
+            </p>
+            <p className="!text-[10px]">{ticket.location}</p>
           </div>
 
           {/* Details */}
           <div>
-            <p className="text-[10px] font-medium text-gray-600">Details</p>
-            <p className="text-xs whitespace-pre-wrap">{ticket.description}</p>
+            <p className="!text-[10px] text-gray-500">
+              {translations.tickets.details.description}:
+            </p>
+            <p className="!text-[10px] whitespace-pre-wrap">
+              {ticket.description}
+            </p>
           </div>
 
           {/* Image */}
           {ticket.image_url && (
             <div>
               <p className="text-[10px] font-medium text-gray-600 mb-1">
-                Image
+                {translations.tickets.details.image}
               </p>
               <div className="h-48 w-full rounded-lg overflow-hidden">
                 <img
@@ -110,7 +121,9 @@ const SelectedTicketModal = memo(function SelectedTicketModal({
           {/* Status and Actions */}
           <div className="pt-2 flex justify-between items-center">
             <div>
-              <p className="text-[10px] font-medium text-gray-600">Status</p>
+              <p className="text-[10px] font-medium text-gray-600">
+                {translations.tickets.details.status}
+              </p>
               <span
                 className={`inline-block px-2 py-0.5 text-[10px] font-medium ${
                   ticket.status === "open"
@@ -118,7 +131,9 @@ const SelectedTicketModal = memo(function SelectedTicketModal({
                     : "bg-green-100 text-green-800"
                 }`}
               >
-                {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
+                {ticket.status === "open"
+                  ? translations.common.status.open
+                  : translations.common.status.completed}
               </span>
             </div>
             {ticket.status === "open" ? (
@@ -130,7 +145,7 @@ const SelectedTicketModal = memo(function SelectedTicketModal({
                 }}
                 className="bg-green-500 text-white text-[10px] font-bold py-1 px-2 rounded hover:bg-green-600"
               >
-                Complete
+                {translations.common.actions.complete}
               </button>
             ) : (
               <button
@@ -141,7 +156,7 @@ const SelectedTicketModal = memo(function SelectedTicketModal({
                 }}
                 className="bg-blue-500 text-white text-[10px] font-bold py-1 px-2 rounded hover:bg-blue-600"
               >
-                Re-open Ticket
+                {translations.common.actions.reopen}
               </button>
             )}
           </div>

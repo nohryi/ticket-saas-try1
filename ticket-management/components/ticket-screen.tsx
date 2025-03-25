@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useLayoutEffect,
+} from "react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import ExistingTicket from "@/components/existing-ticket";
 import NewTicket from "@/components/new-ticket";
@@ -42,6 +48,34 @@ export default function TicketScreen() {
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  // Add state to track truncated titles
+  const [truncatedTitles, setTruncatedTitles] = useState<Set<string>>(
+    new Set()
+  );
+
+  // Function to check if title is truncated
+  const checkTitleTruncation = useCallback(
+    (titleElement: HTMLElement, ticketId: string) => {
+      const isOverflowing = titleElement.scrollWidth > titleElement.clientWidth;
+      setTruncatedTitles((prev) => {
+        if (
+          (isOverflowing && prev.has(ticketId)) ||
+          (!isOverflowing && !prev.has(ticketId))
+        ) {
+          return prev;
+        }
+        const newSet = new Set(prev);
+        if (isOverflowing) {
+          newSet.add(ticketId);
+        } else {
+          newSet.delete(ticketId);
+        }
+        return newSet;
+      });
+    },
+    []
+  );
 
   // Load tickets from API on component mount
   useEffect(() => {
@@ -232,7 +266,10 @@ export default function TicketScreen() {
                   : "text-gray-700 hover:bg-gray-100"
               }`}
             >
-              All Tickets ({allCount})
+              <span className="inline-flex items-center gap-1 ltr:flex-row rtl:flex-row-reverse">
+                <span>{translations.tickets.filters.all}</span>
+                <span dir="ltr">({allCount})</span>
+              </span>
             </button>
             <button
               onClick={() => setFilterType("open")}
@@ -242,7 +279,10 @@ export default function TicketScreen() {
                   : "text-gray-700 hover:bg-gray-100"
               }`}
             >
-              Open Tickets ({openCount})
+              <span className="inline-flex items-center gap-1 ltr:flex-row rtl:flex-row-reverse">
+                <span>{translations.tickets.filters.open}</span>
+                <span dir="ltr">({openCount})</span>
+              </span>
             </button>
             <button
               onClick={() => setFilterType("completed")}
@@ -252,7 +292,10 @@ export default function TicketScreen() {
                   : "text-gray-700 hover:bg-gray-100"
               }`}
             >
-              Completed Tickets ({completedCount})
+              <span className="inline-flex items-center gap-1 ltr:flex-row rtl:flex-row-reverse">
+                <span>{translations.tickets.filters.completed}</span>
+                <span dir="ltr">({completedCount})</span>
+              </span>
             </button>
           </div>
           <div className="relative">
@@ -261,10 +304,10 @@ export default function TicketScreen() {
               placeholder={translations.common.search}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-4 pr-10 py-2 border-2 border-gray-300 rounded-full w-[200px] text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="pl-4 pr-10 py-2 border-2 border-gray-300 rounded-full w-[214px] text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
             <svg
-              className="w-4 h-4 text-gray-500 absolute right-8 top-1/2 transform -translate-y-1/2"
+              className="w-4 h-4 text-gray-500 absolute right-6 top-1/2 transform -translate-y-1/2"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -283,7 +326,7 @@ export default function TicketScreen() {
           onClick={() => setShowNewTicketForm(true)}
           className="px-4 py-2 bg-blue-500 text-white rounded-full text-sm font-medium hover:bg-blue-600 transition-colors"
         >
-          Create Ticket
+          {translations.common.actions.create}
         </button>
       </div>
 
@@ -298,37 +341,41 @@ export default function TicketScreen() {
             <div className="relative flex justify-between h-[32px] border-b border-gray-200 bg-[#FF6F61]/10">
               <div className="flex-1 group/title relative">
                 <h3 className="text-[13px] text-gray-900 font-medium leading-tight p-2.5 whitespace-nowrap">
-                  {ticket.status === "completed"
-                    ? ticket.title.length > 25
-                      ? `${ticket.title.slice(0, 25)}...`
-                      : ticket.title
-                    : ticket.title.length > 33
-                    ? `${ticket.title.slice(0, 33)}...`
+                  {ticket.title.length > 28
+                    ? `${ticket.title.slice(0, 28)}...`
                     : ticket.title}
                 </h3>
-                <div className="absolute left-0 top-full z-50 hidden group-hover/title:block">
-                  <div className="bg-gray-900 text-white text-[13px] p-2 rounded-md mt-1 shadow-lg break-words w-[180px] leading-normal ml-2">
-                    {ticket.title}
+                {ticket.title.length > 28 && (
+                  <div className="absolute left-0 top-full z-50 hidden group-hover/title:block">
+                    <div className="bg-gray-900 text-white text-[13px] p-2 rounded-md mt-1 shadow-lg break-words w-[180px] leading-normal ml-2">
+                      {ticket.title}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
               {ticket.status === "completed" && (
                 <span className="absolute right-2.5 top-1/2 -translate-y-1/2 shrink-0 px-1.5 py-0.5 rounded-full text-[10px] bg-green-50 text-green-600 border border-green-200 font-medium">
-                  Completed
+                  {translations.common.status.completed}
                 </span>
               )}
             </div>
             <div className="space-y-1 p-2.5">
               <p className="text-[11px] text-gray-600">
-                <span className="text-gray-500">Submitter:</span>{" "}
+                <span className="text-gray-500">
+                  {translations.tickets.details.submitter}:
+                </span>{" "}
                 {ticket.submitter_name}
               </p>
               <p className="text-[11px] text-gray-600">
-                <span className="text-gray-500">Location:</span>{" "}
+                <span className="text-gray-500">
+                  {translations.tickets.details.location}:
+                </span>{" "}
                 {ticket.location}
               </p>
               <p className="text-[11px] text-gray-600">
-                <span className="text-gray-500">Priority:</span>{" "}
+                <span className="text-gray-500">
+                  {translations.tickets.details.priority}:
+                </span>{" "}
                 <span
                   className={`font-medium ${
                     ticket.priority.toLowerCase() === "high"
@@ -338,12 +385,16 @@ export default function TicketScreen() {
                       : "text-green-500"
                   }`}
                 >
-                  {ticket.priority.charAt(0).toUpperCase() +
-                    ticket.priority.slice(1).toLowerCase()}
+                  {ticket.priority === "High"
+                    ? translations.common.priority.high
+                    : ticket.priority === "Medium"
+                    ? translations.common.priority.medium
+                    : translations.common.priority.low}
                 </span>
               </p>
               <p className="text-[10px] text-gray-400">
-                Created: {formatDate(ticket.created_at)}
+                {translations.tickets.details.created}:{" "}
+                {formatDate(ticket.created_at)}
               </p>
 
               {/* Image preview */}
@@ -376,14 +427,14 @@ export default function TicketScreen() {
                   }
                   className="w-full px-2 py-0.5 text-[10px] font-medium text-white bg-[#FF6F61] rounded-full hover:bg-[#FF6F61]/90 transition-colors"
                 >
-                  Complete
+                  {translations.common.actions.complete}
                 </button>
               ) : (
                 <button
                   onClick={() => handleTicketStatusUpdate(ticket.id, "open")}
                   className="w-full px-2 py-0.5 text-[10px] font-medium text-white bg-blue-500 rounded-full hover:bg-blue-600 transition-colors"
                 >
-                  Reopen
+                  {translations.common.actions.reopen}
                 </button>
               )}
             </div>

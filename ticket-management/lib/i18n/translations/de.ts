@@ -1,0 +1,66 @@
+export const de = {
+  common: {
+    search: "Tickets suchen",
+    status: {
+      open: "Offen",
+      completed: "Abgeschlossen",
+      all: "Alle",
+    },
+    priority: {
+      high: "Hoch",
+      medium: "Mittel",
+      low: "Niedrig",
+    },
+    actions: {
+      create: "Ticket erstellen",
+      update: "Aktualisieren",
+      cancel: "Abbrechen",
+      save: "Speichern",
+      delete: "Löschen",
+      complete: "Abschließen",
+      reopen: "Wieder öffnen",
+      close: "Schließen",
+    },
+  },
+  tickets: {
+    title: "Tickets",
+    newTicket: "Neues Ticket",
+    details: {
+      submitter: "Ersteller",
+      location: "Standort",
+      priority: "Priorität",
+      status: "Status",
+      created: "Erstellt am",
+      updated: "Aktualisiert am",
+      description: "Beschreibung",
+      image: "Bild",
+    },
+    filters: {
+      all: "Alle Tickets",
+      open: "Offene Tickets",
+      completed: "Abgeschlossene Tickets",
+    },
+    form: {
+      title: "Titel",
+      submitterName: "Name des Erstellers",
+      location: "Standort",
+      priority: "Priorität",
+      description: "Beschreibung",
+      image: "Bild",
+    },
+  },
+  header: {
+    settings: "Einstellungen",
+    language: "Sprache",
+  },
+  languages: {
+    en: "Englisch",
+    fr: "Französisch",
+    de: "Deutsch",
+    zh: "Chinesisch",
+    ja: "Japanisch",
+    tr: "Türkisch",
+    es: "Spanisch",
+    yue: "Kantonesisch",
+  },
+};
