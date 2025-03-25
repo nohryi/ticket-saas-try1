@@ -15,6 +15,20 @@ import { fetchTickets, updateTicketStatus, createTicket } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 import SelectedTicketModal from "@/components/selected-ticket-modal";
 import SortMenu, { SortField, SortDirection } from "@/components/sort-menu";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable";
 
 type FilterType = "all" | "open" | "completed";
 
@@ -27,6 +41,193 @@ interface NewTicketForm {
   description: string;
   incident_time?: string;
   image?: File;
+}
+
+interface SortableTicketProps {
+  ticket: Ticket;
+  index: number;
+  onTicketClick: (ticket: Ticket, e: React.MouseEvent) => void;
+  onStatusUpdate: (
+    ticketId: string,
+    newStatus: "open" | "completed" | "in_progress"
+  ) => void;
+  translations: any; // Keep as any since we don't have the translations type
+  onImageClick: (imageUrl: string | undefined) => void;
+}
+
+function SortableTicket({
+  ticket,
+  index,
+  onTicketClick,
+  onStatusUpdate,
+  translations,
+  onImageClick,
+}: SortableTicketProps) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useSortable({
+      id: ticket.id,
+      animateLayoutChanges: ({ isSorting }) => !isSorting,
+    });
+
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        zIndex: isDragging ? 1000 : 1,
+        position: "relative" as const,
+        height: "100%",
+        touchAction: "none",
+        transition: isDragging
+          ? "none"
+          : "transform 200ms cubic-bezier(0.2, 0, 0, 1)",
+      }
+    : {
+        position: "relative" as const,
+        height: "100%",
+        touchAction: "none",
+        transition: "transform 200ms cubic-bezier(0.2, 0, 0, 1)",
+      };
+
+  const [isClicking, setIsClicking] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout>();
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsClicking(true);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
+      setIsClicking(false);
+    }, 200);
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    if (isClicking && !isDragging) {
+      onTicketClick(ticket, e);
+    }
+    setIsClicking(false);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      style={style}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      className={`bg-white rounded-lg cursor-grab active:cursor-grabbing hover:shadow-lg transition-all border-2 border-[#FF6F61]/40 overflow-hidden group relative pb-[32px] hover:border-[#FF6F61]/60 ${
+        isDragging ? "shadow-2xl scale-[1.02]" : ""
+      } outline outline-1 outline-black/10`}
+    >
+      {/* Header */}
+      <div className="relative flex justify-between h-[32px] border-b border-[#FF6F61]/40 bg-[#FF6F61]/35">
+        <div className="flex-1 group/title relative">
+          <h3 className="text-[13px] text-gray-900 font-semibold tracking-tight px-2.5 h-[32px] flex items-center whitespace-nowrap">
+            {ticket.title.length > 28
+              ? `${ticket.title.slice(0, 28)}...`
+              : ticket.title}
+          </h3>
+          {ticket.title.length > 28 && (
+            <div className="absolute left-0 top-full z-50 hidden group-hover/title:block">
+              <div className="bg-gray-900 text-white text-[13px] p-2 rounded-md mt-1 shadow-lg break-words w-[180px] leading-normal ml-2">
+                {ticket.title}
+              </div>
+            </div>
+          )}
+        </div>
+        {ticket.status === "completed" && (
+          <span className="absolute right-2.5 top-1/2 -translate-y-1/2 shrink-0 px-1.5 py-0.5 rounded-full text-[10px] bg-green-50 text-green-600 border border-green-200 font-medium">
+            {translations.common.status.completed}
+          </span>
+        )}
+      </div>
+
+      {/* Content area */}
+      <div className="space-y-1 p-2.5">
+        <p className="text-[11px] text-gray-600">
+          <span className="text-gray-500">
+            {translations.tickets.details.submitter}:
+          </span>{" "}
+          {ticket.submitter_name}
+        </p>
+        <p className="text-[11px] text-gray-600">
+          <span className="text-gray-500">
+            {translations.tickets.details.location}:
+          </span>{" "}
+          {ticket.location}
+        </p>
+        <p className="text-[11px] text-gray-600">
+          <span className="text-gray-500">
+            {translations.tickets.details.priority}:
+          </span>{" "}
+          <span
+            className={`font-medium ${
+              ticket.priority.toLowerCase() === "high"
+                ? "text-red-500"
+                : ticket.priority.toLowerCase() === "medium"
+                ? "text-amber-500"
+                : "text-green-500"
+            }`}
+          >
+            {ticket.priority === "High"
+              ? translations.common.priority.high
+              : ticket.priority === "Medium"
+              ? translations.common.priority.medium
+              : translations.common.priority.low}
+          </span>
+        </p>
+        <p className="text-[10px] text-gray-400">
+          {translations.tickets.details.created}:{" "}
+          {formatDate(ticket.created_at)}
+        </p>
+
+        {/* Image preview */}
+        {ticket.image_url && (
+          <div
+            className="mt-1.5 relative w-full h-20 rounded-lg overflow-hidden bg-gray-100 image-preview-trigger cursor-pointer border border-gray-200"
+            onClick={(e) => {
+              e.stopPropagation();
+              onImageClick(ticket.image_url);
+            }}
+          >
+            <img
+              src={ticket.image_url}
+              alt="Issue"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Action buttons */}
+      <div className="absolute bottom-0 left-0 right-0 p-2.5 bg-white flex gap-2">
+        {ticket.status === "open" ? (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onStatusUpdate(ticket.id, "completed");
+            }}
+            className="w-full px-2 py-0.5 text-[10px] font-medium text-white bg-[#FF6F61] rounded-full hover:bg-[#FF6F61]/90 transition-colors"
+          >
+            {translations.common.actions.complete}
+          </button>
+        ) : (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onStatusUpdate(ticket.id, "open");
+            }}
+            className="w-full px-2 py-0.5 text-[10px] font-medium text-white bg-blue-500 rounded-full hover:bg-blue-600 transition-colors"
+          >
+            {translations.common.actions.reopen}
+          </button>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function TicketScreen() {
@@ -58,6 +259,30 @@ export default function TicketScreen() {
     new Set()
   );
 
+  const [isDragging, setIsDragging] = useState(false);
+  const [columnCount, setColumnCount] = useState(0);
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  // Add debug state
+  const [debugInfo, setDebugInfo] = useState({
+    gridWidth: 0,
+    columnCount: 0,
+    itemCount: 0,
+  });
+
+  // Load tickets from API on component mount
+  useEffect(() => {
+    const loadTickets = async () => {
+      try {
+        const data = await fetchTickets();
+        setTickets(data);
+      } catch (error) {
+        console.error("Failed to load tickets:", error);
+      }
+    };
+    loadTickets();
+  }, []);
+
   // Function to check if title is truncated
   const checkTitleTruncation = useCallback(
     (titleElement: HTMLElement, ticketId: string) => {
@@ -80,19 +305,6 @@ export default function TicketScreen() {
     },
     []
   );
-
-  // Load tickets from API on component mount
-  useEffect(() => {
-    const loadTickets = async () => {
-      try {
-        const data = await fetchTickets();
-        setTickets(data);
-      } catch (error) {
-        console.error("Failed to load tickets:", error);
-      }
-    };
-    loadTickets();
-  }, []);
 
   const handleNewTicketInputChange = (
     e: React.ChangeEvent<
@@ -237,6 +449,20 @@ export default function TicketScreen() {
     })
   );
 
+  // Update debug info whenever relevant values change
+  useLayoutEffect(() => {
+    if (gridRef.current) {
+      const width = gridRef.current.offsetWidth;
+      const columns = calculateVisibleColumns();
+      setDebugInfo((prev) => ({
+        ...prev,
+        gridWidth: width,
+        columnCount: columns,
+        itemCount: filteredTickets.length,
+      }));
+    }
+  }, [isDragging, filteredTickets.length]);
+
   // Get ticket counts - only count tickets with valid status
   const openCount = tickets.filter((t) => t.status === "open").length;
   const completedCount = tickets.filter((t) => t.status === "completed").length;
@@ -284,8 +510,51 @@ export default function TicketScreen() {
     setSelectedTicket(ticket);
   };
 
+  const calculateVisibleColumns = () => {
+    if (!gridRef.current) return 5; // default max columns
+    const width = window.innerWidth;
+    if (width >= 1280) return 5; // xl
+    if (width >= 1024) return 4; // lg
+    if (width >= 768) return 3; // md
+    if (width >= 640) return 2; // sm
+    return 1; // mobile
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+        delay: 0,
+        tolerance: 5,
+      },
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    setTickets((tickets) => {
+      const oldIndex = tickets.findIndex((t) => t.id === active.id);
+      const newIndex = tickets.findIndex((t) => t.id === over.id);
+
+      return arrayMove(tickets, oldIndex, newIndex);
+    });
+  };
+
   return (
     <div className="container mx-auto px-4 pt-[60px]">
+      {/* Debug overlay */}
+      <div className="fixed top-0 left-0 bg-black/80 text-white p-4 z-50 font-mono text-sm">
+        <p>Grid Width: {debugInfo.gridWidth}px</p>
+        <p>Columns: {debugInfo.columnCount}</p>
+        <p>Items: {debugInfo.itemCount}</p>
+        <p>Is Dragging: {isDragging ? "Yes" : "No"}</p>
+      </div>
+
       {/* Search and filter section */}
       <div className="mb-6 flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -372,114 +641,43 @@ export default function TicketScreen() {
         </button>
       </div>
 
-      {/* Tickets grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {filteredTickets.map((ticket) => (
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="relative w-full overflow-hidden">
           <div
-            key={ticket.id}
-            className="bg-white rounded-lg cursor-pointer hover:shadow-lg transition-all border-2 border-[#FF6F61]/40 overflow-hidden group min-w-[200px] relative pb-[32px] hover:border-[#FF6F61]/60"
-            onClick={(e) => handleTicketClick(ticket, e)}
+            className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+            style={{
+              width: "100%",
+              maxWidth: "100%",
+              margin: "0 auto",
+              border: "2px solid black",
+              background: "rgba(0, 0, 0, 0.05)",
+              padding: "8px",
+            }}
+            ref={gridRef}
           >
-            <div className="relative flex justify-between h-[32px] border-b border-[#FF6F61]/40 bg-[#FF6F61]/35">
-              <div className="flex-1 group/title relative">
-                <h3 className="text-[13px] text-gray-900 font-semibold tracking-tight px-2.5 h-[32px] flex items-center whitespace-nowrap">
-                  {ticket.title.length > 28
-                    ? `${ticket.title.slice(0, 28)}...`
-                    : ticket.title}
-                </h3>
-                {ticket.title.length > 28 && (
-                  <div className="absolute left-0 top-full z-50 hidden group-hover/title:block">
-                    <div className="bg-gray-900 text-white text-[13px] p-2 rounded-md mt-1 shadow-lg break-words w-[180px] leading-normal ml-2">
-                      {ticket.title}
-                    </div>
-                  </div>
-                )}
-              </div>
-              {ticket.status === "completed" && (
-                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 shrink-0 px-1.5 py-0.5 rounded-full text-[10px] bg-green-50 text-green-600 border border-green-200 font-medium">
-                  {translations.common.status.completed}
-                </span>
-              )}
-            </div>
-            <div className="space-y-1 p-2.5">
-              <p className="text-[11px] text-gray-600">
-                <span className="text-gray-500">
-                  {translations.tickets.details.submitter}:
-                </span>{" "}
-                {ticket.submitter_name}
-              </p>
-              <p className="text-[11px] text-gray-600">
-                <span className="text-gray-500">
-                  {translations.tickets.details.location}:
-                </span>{" "}
-                {ticket.location}
-              </p>
-              <p className="text-[11px] text-gray-600">
-                <span className="text-gray-500">
-                  {translations.tickets.details.priority}:
-                </span>{" "}
-                <span
-                  className={`font-medium ${
-                    ticket.priority.toLowerCase() === "high"
-                      ? "text-red-500"
-                      : ticket.priority.toLowerCase() === "medium"
-                      ? "text-amber-500"
-                      : "text-green-500"
-                  }`}
-                >
-                  {ticket.priority === "High"
-                    ? translations.common.priority.high
-                    : ticket.priority === "Medium"
-                    ? translations.common.priority.medium
-                    : translations.common.priority.low}
-                </span>
-              </p>
-              <p className="text-[10px] text-gray-400">
-                {translations.tickets.details.created}:{" "}
-                {formatDate(ticket.created_at)}
-              </p>
-
-              {/* Image preview */}
-              {ticket.image_url && (
-                <div
-                  className="mt-1.5 relative w-full h-20 rounded-lg overflow-hidden bg-gray-100 image-preview-trigger cursor-pointer border border-gray-200"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleImageClick(ticket.image_url);
-                  }}
-                >
-                  <img
-                    src={ticket.image_url}
-                    alt="Issue"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Action buttons */}
-            <div className="absolute bottom-0 left-0 right-0 p-2.5 bg-white flex gap-2">
-              {ticket.status === "open" ? (
-                <button
-                  onClick={() =>
-                    handleTicketStatusUpdate(ticket.id, "completed")
-                  }
-                  className="w-full px-2 py-0.5 text-[10px] font-medium text-white bg-[#FF6F61] rounded-full hover:bg-[#FF6F61]/90 transition-colors"
-                >
-                  {translations.common.actions.complete}
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleTicketStatusUpdate(ticket.id, "open")}
-                  className="w-full px-2 py-0.5 text-[10px] font-medium text-white bg-blue-500 rounded-full hover:bg-blue-600 transition-colors"
-                >
-                  {translations.common.actions.reopen}
-                </button>
-              )}
-            </div>
+            <SortableContext
+              items={filteredTickets.map((t) => t.id)}
+              strategy={rectSortingStrategy}
+            >
+              {filteredTickets.map((ticket, index) => (
+                <SortableTicket
+                  key={ticket.id}
+                  ticket={ticket}
+                  index={index}
+                  onTicketClick={handleTicketClick}
+                  onStatusUpdate={handleTicketStatusUpdate}
+                  translations={translations}
+                  onImageClick={handleImageClick}
+                />
+              ))}
+            </SortableContext>
           </div>
-        ))}
-      </div>
+        </div>
+      </DndContext>
 
       {/* New Ticket Modal */}
       {showNewTicketForm && (
