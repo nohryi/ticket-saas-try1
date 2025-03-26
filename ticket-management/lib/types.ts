@@ -12,4 +12,7 @@ export interface Ticket {
   updated_at: string;
   incident_time?: string;
   order?: number;
+  key_issues?: string;
+  immediate_impact?: string;
+  attempted_solutions?: string;
 }

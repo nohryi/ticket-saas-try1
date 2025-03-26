@@ -107,7 +107,37 @@ export default function ExistingTicket({
             <p className="text-[11px] text-gray-500 mb-1">
               {translations.tickets.details.image}:
             </p>
-            <div className="relative w-full h-40 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+            <div
+              className="relative w-full h-40 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 cursor-zoom-in transition-transform hover:shadow-lg"
+              onClick={() => {
+                const modal = document.createElement("div");
+                modal.className =
+                  "fixed inset-0 bg-black/80 flex items-center justify-center z-[300] p-4";
+                modal.onclick = (e) => {
+                  if (e.target === modal) {
+                    document.body.removeChild(modal);
+                  }
+                };
+
+                const img = document.createElement("img");
+                img.src = ticket.image_url || "";
+                img.className =
+                  "max-w-[80vw] max-h-[80vh] object-contain transform transition-transform duration-200 hover:scale-150";
+                img.style.cursor = "zoom-in";
+                img.onclick = () => {
+                  if (img.style.transform === "scale(2)") {
+                    img.style.transform = "scale(1)";
+                    img.style.cursor = "zoom-in";
+                  } else {
+                    img.style.transform = "scale(2)";
+                    img.style.cursor = "zoom-out";
+                  }
+                };
+
+                modal.appendChild(img);
+                document.body.appendChild(modal);
+              }}
+            >
               <img
                 src={ticket.image_url}
                 alt={translations.tickets.details.image}

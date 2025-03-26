@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Ticket } from "@/lib/mock-data";
+import { Ticket } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
@@ -20,145 +20,168 @@ const SelectedTicketModal = memo(function SelectedTicketModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center"
+      className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
       onClick={onClose}
     >
       <div
-        className="bg-[#FFEBEE] rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto overscroll-contain will-change-transform scrollbar-hide"
+        className="bg-[#FFEBEE] rounded-lg shadow-xl w-full max-w-xl mx-auto flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
         style={{
-          transform: "translateZ(0)",
-          backfaceVisibility: "hidden",
-          msOverflowStyle: "none" /* IE and Edge */,
-          scrollbarWidth: "none" /* Firefox */,
+          minWidth: "320px",
         }}
       >
-        {/* Header with coral background */}
-        <div className="bg-[#FF6F61] text-white py-1.5 px-3 flex justify-between items-center sticky top-0 z-10 rounded-t-lg">
-          <h3 className="font-bold text-sm pr-4">{ticket.title}</h3>
-          <button
-            onClick={onClose}
-            className="text-white hover:text-gray-200 rounded-full p-1 hover:bg-black/10 transition-colors"
-          >
-            <svg
-              className="w-3 h-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+        {/* Header with coral background - now outside scroll area */}
+        <div className="bg-[#FF6F61] text-white py-3 px-4 rounded-t-lg flex-shrink-0">
+          <div className="flex justify-between items-start gap-4">
+            <h3 className="font-bold text-sm break-words flex-1 leading-relaxed">
+              {ticket.title}
+            </h3>
+            <button
+              onClick={onClose}
+              className="text-white hover:text-gray-200 rounded-full p-1 hover:bg-black/10 transition-colors flex-shrink-0"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
+              <svg
+                className="w-3 h-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
 
-        {/* Content with smaller text */}
-        <div className="p-3 space-y-2 rounded-b-lg text-[10px] !leading-normal">
-          {/* Submitter Name */}
-          <div>
-            <p className="!text-[10px] text-gray-500">
-              {translations.tickets.details.submitter}:
-            </p>
-            <p className="!text-[10px]">{ticket.submitter_name}</p>
-          </div>
-
-          {/* Dates and Priority Section */}
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <p className="!text-[10px] text-gray-500">
-                {translations.tickets.details.created}:
-              </p>
-              <p className="!text-[10px]">{formatDate(ticket.created_at)}</p>
-            </div>
-            <div>
-              <p className="!text-[10px] text-gray-500">
-                {translations.tickets.details.priority}:
-              </p>
-              <p className="!text-[10px]">{ticket.priority}</p>
-            </div>
-          </div>
-
-          {/* Location */}
-          <div>
-            <p className="!text-[10px] text-gray-500">
-              {translations.tickets.details.location}:
-            </p>
-            <p className="!text-[10px]">{ticket.location}</p>
-          </div>
-
-          {/* Details */}
-          <div>
-            <p className="!text-[10px] text-gray-500">
-              {translations.tickets.details.description}:
-            </p>
-            <p className="!text-[10px] whitespace-pre-wrap">
-              {ticket.description}
-            </p>
-          </div>
-
-          {/* Image */}
-          {ticket.image_url && (
-            <div>
-              <p className="text-[10px] font-medium text-gray-600 mb-1">
-                {translations.tickets.details.image}
-              </p>
-              <div className="h-48 w-full rounded-lg overflow-hidden">
-                <img
-                  src={ticket.image_url}
-                  alt="Ticket"
-                  className="w-full h-full object-cover"
-                  onClick={() => onImageClick(ticket.image_url)}
-                  loading="lazy"
-                />
+        {/* Scrollable content area */}
+        <div className="overflow-y-auto flex-1">
+          <div className="space-y-4 p-6">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-semibold text-gray-900">
+                {ticket.title}
+              </h2>
+              <div className="text-sm text-gray-500 space-y-0.5">
+                <div>
+                  <span className="font-medium">Status:</span> {ticket.status}
+                </div>
+                <div>
+                  <span className="font-medium">Submitter:</span>{" "}
+                  {ticket.submitter_name}
+                </div>
+                <div>
+                  <span className="font-medium">Created:</span>{" "}
+                  {formatDate(ticket.created_at)}
+                </div>
+                <div>
+                  <span className="font-medium">Priority:</span>{" "}
+                  <span
+                    className={`${
+                      ticket.priority.toLowerCase() === "high"
+                        ? "text-red-600"
+                        : ""
+                    }`}
+                  >
+                    {ticket.priority}
+                  </span>
+                </div>
+                <div>
+                  <span className="font-medium">Location:</span>{" "}
+                  {ticket.location}
+                </div>
               </div>
             </div>
-          )}
 
-          {/* Status and Actions */}
-          <div className="pt-2 flex justify-between items-center">
-            <div>
-              <p className="text-[10px] font-medium text-gray-600">
-                {translations.tickets.details.status}
-              </p>
-              <span
-                className={`inline-block px-2 py-0.5 text-[10px] font-medium ${
-                  ticket.status === "open"
-                    ? "bg-yellow-100 text-yellow-800"
-                    : "bg-green-100 text-green-800"
-                }`}
-              >
-                {ticket.status === "open"
-                  ? translations.common.status.open
-                  : translations.common.status.completed}
-              </span>
+            <div className="space-y-1">
+              <div className="font-medium">Description:</div>
+              <div className="text-sm text-gray-600">{ticket.description}</div>
             </div>
-            {ticket.status === "open" ? (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onStatusUpdate(ticket.id, "completed");
-                  onClose();
-                }}
-                className="bg-green-500 text-white text-[10px] font-bold py-1 px-2 rounded hover:bg-green-600"
-              >
-                {translations.common.actions.complete}
-              </button>
-            ) : (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onStatusUpdate(ticket.id, "open");
-                  onClose();
-                }}
-                className="bg-blue-500 text-white text-[10px] font-bold py-1 px-2 rounded hover:bg-blue-600"
-              >
-                {translations.common.actions.reopen}
-              </button>
+
+            {ticket.key_issues && (
+              <div className="space-y-1">
+                <div className="font-medium">Key Issues:</div>
+                <div className="text-sm text-gray-600">
+                  {ticket.key_issues
+                    .split("\n")
+                    .map((issue: string, index: number) => (
+                      <div key={index} className="flex items-start gap-2 -ml-1">
+                        <span>-</span>
+                        <span>{issue.replace(/^[-•]\s*/, "")}</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
             )}
+
+            {ticket.immediate_impact && (
+              <div className="space-y-1">
+                <div className="font-medium">Immediate Impact:</div>
+                <div className="text-sm text-gray-600">
+                  {ticket.immediate_impact
+                    .split("\n")
+                    .map((impact: string, index: number) => (
+                      <div key={index} className="flex items-start gap-2 -ml-1">
+                        <span>-</span>
+                        <span>{impact.replace(/^[-•]\s*/, "")}</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {ticket.attempted_solutions && (
+              <div className="space-y-1">
+                <div className="font-medium">Attempted Solutions:</div>
+                <div className="text-sm text-gray-600">
+                  {ticket.attempted_solutions
+                    .split("\n")
+                    .map((solution: string, index: number) => (
+                      <div key={index} className="flex items-start gap-2 -ml-1">
+                        <span>-</span>
+                        <span>{solution.replace(/^[-•]\s*/, "")}</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {ticket.image_url && (
+              <div className="mt-4">
+                <div className="font-medium mb-2">Image:</div>
+                <div className="w-3/4">
+                  <img
+                    src={ticket.image_url}
+                    alt="Issue"
+                    className="w-full h-auto rounded-lg"
+                    onClick={() => onImageClick(ticket.image_url)}
+                    style={{ cursor: "pointer" }}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Close
+              </button>
+              {ticket.status !== "completed" && (
+                <button
+                  onClick={() => {
+                    onStatusUpdate(ticket.id, "completed");
+                    onClose();
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
+                >
+                  Mark as Complete
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -56,8 +56,8 @@ interface SortableTicketProps {
     ticketId: string,
     newStatus: "open" | "completed" | "in_progress"
   ) => void;
-  translations: any; // Keep as any since we don't have the translations type
-  onImageClick: (imageUrl: string | undefined) => void;
+  translations: any;
+  onImageClick: (imageUrl: string | undefined, ticket: Ticket) => void;
 }
 
 function SortableTicket({
@@ -96,11 +96,8 @@ function SortableTicket({
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Don't start click tracking if clicking a button or image
-    if (
-      e.target instanceof HTMLElement &&
-      (e.target.closest("button") || e.target.closest(".image-preview-trigger"))
-    ) {
+    // Don't start click tracking if clicking a button
+    if (e.target instanceof HTMLElement && e.target.closest("button")) {
       return;
     }
 
@@ -114,11 +111,8 @@ function SortableTicket({
   };
 
   const handleMouseUp = (e: React.MouseEvent) => {
-    // Don't trigger ticket click if clicking a button or image
-    if (
-      e.target instanceof HTMLElement &&
-      (e.target.closest("button") || e.target.closest(".image-preview-trigger"))
-    ) {
+    // Don't trigger ticket click if clicking a button
+    if (e.target instanceof HTMLElement && e.target.closest("button")) {
       setIsClicking(false);
       return;
     }
@@ -145,6 +139,16 @@ function SortableTicket({
           ? "shadow-2xl scale-[1.02] transition-none"
           : "transition-shadow"
       } outline outline-1 outline-black/10`}
+      onClick={(e) => {
+        const target = e.target as HTMLElement;
+        if (
+          !isDragging &&
+          !target.closest(".image-preview-trigger") &&
+          !target.closest("button")
+        ) {
+          onTicketClick(ticket, e);
+        }
+      }}
     >
       {/* Main content area with drag listeners */}
       <div
@@ -236,21 +240,13 @@ function SortableTicket({
             {formatDate(ticket.created_at)}
           </p>
 
-          {/* Image preview */}
+          {/* Image preview - now part of the main content */}
           {ticket.image_url && (
-            <div
-              className="mt-1.5 relative w-full h-20 rounded-lg overflow-hidden bg-gray-100 image-preview-trigger cursor-pointer border border-gray-200"
-              onClick={(e) => {
-                e.stopPropagation();
-                onImageClick(ticket.image_url);
-              }}
-            >
-              <img
-                src={ticket.image_url}
-                alt="Issue"
-                className="w-full h-full object-cover"
-              />
-            </div>
+            <img
+              src={ticket.image_url}
+              alt="Issue"
+              className="mt-1.5 w-full h-20 object-cover rounded-lg border border-gray-200"
+            />
           )}
         </div>
       </div>
@@ -504,10 +500,11 @@ export default function TicketScreen() {
   const allCount = openCount + completedCount; // Total should be sum of open and completed
 
   // Update the image click handler to handle optional image URLs
-  const handleImageClick = (imageUrl: string | undefined) => {
+  const handleImageClick = (imageUrl: string | undefined, ticket: Ticket) => {
     if (!imageUrl) return;
     setSelectedImage(imageUrl);
     setShowImageModal(true);
+    setSelectedTicket(ticket);
   };
 
   // Move isNewTicket check to useEffect
@@ -709,7 +706,9 @@ export default function TicketScreen() {
                   onTicketClick={handleTicketClick}
                   onStatusUpdate={handleTicketStatusUpdate}
                   translations={translations}
-                  onImageClick={handleImageClick}
+                  onImageClick={(imageUrl) =>
+                    handleImageClick(imageUrl, ticket)
+                  }
                 />
               ))}
             </SortableContext>
@@ -717,13 +716,64 @@ export default function TicketScreen() {
         </div>
       </DndContext>
 
+      {/* Image Modal */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] p-4"
+          onClick={() => {
+            setSelectedImage(null);
+            setShowImageModal(false);
+          }}
+        >
+          <div
+            className="relative rounded-lg overflow-hidden"
+            style={{ width: "407px", maxWidth: "407px" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={selectedImage}
+              alt="Issue Details"
+              className="w-[407px] max-w-[407px] h-auto object-contain bg-white"
+              style={{ width: "407px", maxWidth: "407px" }}
+            />
+            <button
+              className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-full p-1.5 shadow-lg hover:bg-white transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedImage(null);
+                setShowImageModal(false);
+              }}
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Existing Ticket Modal */}
       {selectedTicket && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[100]">
           <div className="w-[300px]">
             <ExistingTicket
               ticket={selectedTicket}
-              onClose={() => setSelectedTicket(null)}
+              onClose={() => {
+                setSelectedTicket(null);
+                if (!showImageModal) {
+                  setSelectedImage(null);
+                }
+              }}
               onStatusUpdate={handleTicketStatusUpdate}
             />
           </div>
@@ -741,45 +791,6 @@ export default function TicketScreen() {
               onSubmit={handleSubmitNewTicket}
               onCancel={handleCancelNewTicket}
             />
-          </div>
-        </div>
-      )}
-
-      {/* Image Modal */}
-      {selectedImage && (
-        <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4"
-          onClick={() => setSelectedImage(null)}
-        >
-          <div
-            className="relative rounded-lg overflow-hidden"
-            style={{ width: "407px", maxWidth: "407px" }}
-          >
-            <img
-              src={selectedImage}
-              alt="Issue Details"
-              className="w-[407px] max-w-[407px] h-auto object-contain bg-white"
-              style={{ width: "407px", maxWidth: "407px" }}
-              onClick={(e) => e.stopPropagation()}
-            />
-            <button
-              className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-full p-1.5 shadow-lg hover:bg-white transition-colors"
-              onClick={() => setSelectedImage(null)}
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
           </div>
         </div>
       )}
