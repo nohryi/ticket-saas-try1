@@ -7,7 +7,11 @@ export async function fetchTickets(): Promise<Ticket[]> {
   if (!response.ok) {
     throw new Error("Failed to fetch tickets");
   }
-  return response.json();
+  const tickets = await response.json();
+  // Sort by order if available, otherwise maintain server order
+  return tickets.sort(
+    (a: Ticket, b: Ticket) => (a.order ?? Infinity) - (b.order ?? Infinity)
+  );
 }
 
 export async function fetchTicket(id: string): Promise<Ticket> {
@@ -49,4 +53,19 @@ export async function createTicket(
     throw new Error("Failed to create ticket");
   }
   return response.json();
+}
+
+export async function updateTicketOrder(
+  tickets: { id: string; order: number }[]
+): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/tickets/order`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ tickets }),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to update ticket order");
+  }
 }

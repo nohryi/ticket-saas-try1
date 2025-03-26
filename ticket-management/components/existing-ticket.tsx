@@ -22,9 +22,13 @@ export default function ExistingTicket({
 }: ExistingTicketProps) {
   const { translations } = useLanguage();
 
-  const handleStatusUpdate = (newStatus: "open" | "completed") => {
-    onStatusUpdate(ticket.id, newStatus);
-    onClose();
+  const handleStatusUpdate = async (newStatus: "open" | "completed") => {
+    try {
+      await onStatusUpdate(ticket.id, newStatus);
+      onClose();
+    } catch (error) {
+      console.error("Error updating ticket status:", error);
+    }
   };
 
   return (

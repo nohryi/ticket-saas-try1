@@ -11,4 +11,5 @@ export interface Ticket {
   status: string;
   updated_at: string;
   incident_time?: string;
+  order?: number;
 }

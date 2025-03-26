@@ -155,4 +155,29 @@ router.patch("/:id/image", async (req, res) => {
   }
 });
 
+// Update ticket order
+router.patch("/order", async (req, res) => {
+  try {
+    const { tickets } = req.body;
+
+    // Update each ticket's order
+    for (const ticket of tickets) {
+      const { error } = await supabase
+        .from("tickets")
+        .update({
+          order: ticket.order,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", ticket.id);
+
+      if (error) throw error;
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error updating ticket order:", error);
+    res.status(500).json({ error: "Error updating ticket order" });
+  }
+});
+
 export default router;
