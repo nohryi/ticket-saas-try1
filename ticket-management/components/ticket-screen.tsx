@@ -160,7 +160,7 @@ function SortableTicket({
       >
         {/* Header */}
         <div
-          className={`relative flex h-[32px] border-b ${
+          className={`relative flex h-[40px] border-b ${
             ticket.status === "completed"
               ? "border-gray-200 bg-gray-100/50"
               : "border-[#FF6F61]/40 bg-[#FF6F61]/35"
@@ -169,7 +169,7 @@ function SortableTicket({
           {/* Title container with flex-1 to take remaining space */}
           <div className="flex-1 min-w-0 group/title relative">
             <h3
-              className={`text-[13px] font-semibold tracking-tight px-2.5 h-[32px] flex items-center whitespace-nowrap ${
+              className={`text-[13px] font-semibold tracking-tight px-3 h-[40px] flex items-center whitespace-nowrap ${
                 ticket.status === "completed"
                   ? "text-gray-600"
                   : "text-gray-900"
@@ -280,9 +280,11 @@ export default function TicketScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [newTickets, setNewTickets] = useState<Set<string>>(new Set());
   const [showImageModal, setShowImageModal] = useState(false);
-  const [sortField, setSortField] = useState<SortField>("created_at");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
-  const [showSortMenu, setShowSortMenu] = useState(false);
+  const [currentSortField, setCurrentSortField] =
+    useState<SortField>("created_at");
+  const [currentSortDirection, setCurrentSortDirection] =
+    useState<SortDirection>("desc");
+  const [hasBeenSorted, setHasBeenSorted] = useState(false);
   const [newTicket, setNewTicket] = useState<NewTicketForm>({
     submitter_name: "",
     title: "",
@@ -456,34 +458,6 @@ export default function TicketScreen() {
     );
   };
 
-  // Sort tickets based on current sort field and direction
-  const sortTickets = (tickets: Ticket[]) => {
-    return [...tickets].sort((a, b) => {
-      let compareA: string | number | Date = a[sortField] || "";
-      let compareB: string | number | Date = b[sortField] || "";
-
-      // Convert dates to comparable format
-      if (sortField === "created_at") {
-        compareA = new Date(a.created_at || 0);
-        compareB = new Date(b.created_at || 0);
-      }
-
-      // Handle string comparison
-      if (typeof compareA === "string" && typeof compareB === "string") {
-        const result = compareA.localeCompare(compareB);
-        return sortDirection === "asc" ? result : -result;
-      }
-
-      // Handle date comparison
-      if (compareA instanceof Date && compareB instanceof Date) {
-        const result = compareA.getTime() - compareB.getTime();
-        return sortDirection === "asc" ? result : -result;
-      }
-
-      return 0;
-    });
-  };
-
   // Filter tickets without changing their order
   const filteredTickets = tickets.filter((ticket) => {
     if (!ticket.status || !["open", "completed"].includes(ticket.status)) {
@@ -493,6 +467,76 @@ export default function TicketScreen() {
       filterType === "all" ? true : ticket.status === filterType;
     return matchesStatus && searchTickets(ticket);
   });
+
+  // Modify the sortTickets function to be a one-time operation
+  const applySort = (field: SortField, direction: SortDirection) => {
+    const sortedTickets = [...tickets].sort((a, b) => {
+      let comparison = 0;
+      switch (field) {
+        case "title":
+          comparison = a.title.localeCompare(b.title);
+          break;
+        case "submitter_name":
+          comparison = a.submitter_name.localeCompare(b.submitter_name);
+          break;
+        case "location":
+          comparison = a.location.localeCompare(b.location);
+          break;
+        case "priority": {
+          const priorityOrder: Record<string, number> = {
+            high: 3,
+            medium: 2,
+            low: 1,
+          };
+          comparison =
+            (priorityOrder[a.priority.toLowerCase()] ?? 0) -
+            (priorityOrder[b.priority.toLowerCase()] ?? 0);
+          break;
+        }
+        case "created_at":
+          comparison =
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          break;
+        default:
+          return 0;
+      }
+      return direction === "asc" ? comparison : -comparison;
+    });
+
+    // Update the tickets with the new sorted order and reset their order properties
+    const reorderedTickets = sortedTickets.map((ticket, index) => ({
+      ...ticket,
+      order: index,
+    }));
+    setTickets(reorderedTickets);
+    setHasBeenSorted(true);
+  };
+
+  // Update the handleSort function
+  const handleSort = (field: SortField, direction: SortDirection) => {
+    applySort(field, direction);
+  };
+
+  // Update the handleDragEnd function to work with the new structure
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = tickets.findIndex((t) => t.id === active.id);
+    const newIndex = tickets.findIndex((t) => t.id === over.id);
+
+    const reorderedTickets = arrayMove(tickets, oldIndex, newIndex).map(
+      (ticket, index) => ({
+        ...ticket,
+        order: index,
+      })
+    );
+
+    setTickets(reorderedTickets);
+  };
 
   // Get ticket counts - only count tickets with valid status
   const openCount = tickets.filter((t) => t.status === "open").length;
@@ -562,27 +606,6 @@ export default function TicketScreen() {
     })
   );
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    setIsDragging(false);
-    const { active, over } = event;
-
-    if (!over || active.id === over.id) {
-      return;
-    }
-
-    setTickets((prevTickets) => {
-      const oldIndex = prevTickets.findIndex((t) => t.id === active.id);
-      const newIndex = prevTickets.findIndex((t) => t.id === over.id);
-
-      // Create a new array with the dragged ticket in its new position
-      const newTickets = [...prevTickets];
-      const [draggedTicket] = newTickets.splice(oldIndex, 1);
-      newTickets.splice(newIndex, 0, draggedTicket);
-
-      return newTickets;
-    });
-  };
-
   // Update the filter change handler to maintain animations
   const handleFilterChange = (newFilter: FilterType) => {
     if (newFilter === filterType) return;
@@ -590,9 +613,9 @@ export default function TicketScreen() {
   };
 
   return (
-    <div className="container mx-auto px-4 pt-[60px]">
-      {/* Search and filter section */}
-      <div className="mb-6 flex items-center justify-between gap-4">
+    <div className="h-full flex flex-col overflow-hidden">
+      <div className="flex-none p-4 bg-white">
+        {/* Header content */}
         <div className="flex items-center gap-4">
           <div className="flex gap-2">
             <button
@@ -634,8 +657,6 @@ export default function TicketScreen() {
                 <span dir="ltr">({completedCount})</span>
               </span>
             </button>
-          </div>
-          <div className="flex items-center gap-2">
             <div className="relative">
               <input
                 type="text"
@@ -649,7 +670,6 @@ export default function TicketScreen() {
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
               >
                 <path
                   strokeLinecap="round"
@@ -659,62 +679,56 @@ export default function TicketScreen() {
                 />
               </svg>
             </div>
-            <SortMenu
-              onSort={(field, direction) => {
-                setSortField(field);
-                setSortDirection(direction);
-              }}
-              currentSortField={sortField}
-              currentSortDirection={sortDirection}
-            />
+            <SortMenu onSort={handleSort} hasBeenSorted={hasBeenSorted} />
           </div>
+          <div className="flex-1" />
+          <button
+            onClick={handleCreateNewTicket}
+            className="px-4 py-2 bg-blue-500 text-white rounded-full text-sm font-medium hover:bg-blue-600 transition-colors"
+          >
+            {translations.common.actions.create}
+          </button>
         </div>
-        <button
-          onClick={() => setShowNewTicketForm(true)}
-          className="px-4 py-2 bg-blue-500 text-white rounded-full text-sm font-medium hover:bg-blue-600 transition-colors"
-        >
-          {translations.common.actions.create}
-        </button>
       </div>
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-        onDragStart={() => setIsDragging(true)}
-        onDragCancel={() => setIsDragging(false)}
+      <div
+        className="flex-1 overflow-y-scroll scrollbar-gutter-stable"
+        style={{
+          overscrollBehavior: "contain",
+          scrollbarGutter: "stable",
+        }}
       >
-        <div className="relative w-full overflow-hidden">
-          <div
-            className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
-            style={{
-              width: "100%",
-              maxWidth: "100%",
-              margin: "0 auto",
-            }}
-            ref={gridRef}
+        <div className="px-4 pt-2">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={() => setIsDragging(true)}
+            onDragEnd={handleDragEnd}
+            onDragCancel={() => setIsDragging(false)}
           >
-            <SortableContext
-              items={filteredTickets.map((t) => t.id)}
-              strategy={rectSortingStrategy}
-            >
-              {filteredTickets.map((ticket, index) => (
-                <SortableTicket
-                  key={ticket.id}
-                  ticket={ticket}
-                  index={index}
-                  onTicketClick={handleTicketClick}
-                  onStatusUpdate={handleTicketStatusUpdate}
-                  translations={translations}
-                  onImageClick={(imageUrl) =>
-                    handleImageClick(imageUrl, ticket)
-                  }
-                />
-              ))}
-            </SortableContext>
-          </div>
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              <SortableContext
+                items={filteredTickets.map((t) => t.id)}
+                strategy={rectSortingStrategy}
+              >
+                {filteredTickets.map((ticket, index) => (
+                  <SortableTicket
+                    key={ticket.id}
+                    ticket={ticket}
+                    index={index}
+                    onTicketClick={handleTicketClick}
+                    onStatusUpdate={handleTicketStatusUpdate}
+                    translations={translations}
+                    onImageClick={(imageUrl) =>
+                      handleImageClick(imageUrl, ticket)
+                    }
+                  />
+                ))}
+              </SortableContext>
+            </div>
+          </DndContext>
         </div>
-      </DndContext>
+      </div>
 
       {/* Image Modal */}
       {selectedImage && (

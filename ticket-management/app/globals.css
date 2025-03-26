@@ -139,3 +139,33 @@ body {
     text-wrap: balance;
   }
 }
+
+/* Add these styles for consistent scrollbar behavior */
+html {
+  overflow-y: scroll;
+}
+
+/* Force scrollbar to always show to prevent layout shifts */
+:root {
+  scrollbar-gutter: stable;
+}
+
+/* Optional: Style the scrollbar for better visual consistency */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/* ... rest of your existing global styles ... */
