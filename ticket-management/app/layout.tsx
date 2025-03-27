@@ -2,7 +2,7 @@ import type React from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 import { SupabaseAuthProvider } from "@/lib/auth/SupabaseAuthProvider";
 
@@ -32,16 +32,20 @@ export default function RootLayout({
         <meta name="theme-color" content="#FF6F61" />
       </head>
       <body className={`${inter.className} light`} suppressHydrationWarning>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
-          <LanguageProvider>
-            <SupabaseAuthProvider>{children}</SupabaseAuthProvider>
-          </LanguageProvider>
-        </ThemeProvider>
+        <SupabaseAuthProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem={false}
+            disableTransitionOnChange
+          >
+            <LanguageProvider>
+              <div className="min-h-screen flex flex-col">
+                <main className="flex-1">{children}</main>
+              </div>
+            </LanguageProvider>
+          </ThemeProvider>
+        </SupabaseAuthProvider>
       </body>
     </html>
   );

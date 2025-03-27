@@ -36,9 +36,11 @@ export function SupabaseAuthProvider({
       setUser(session?.user ?? null);
       if (event === "SIGNED_IN") {
         router.refresh();
+        router.push("/tickets");
       }
       if (event === "SIGNED_OUT") {
         router.refresh();
+        router.push("/login");
       }
     });
 
