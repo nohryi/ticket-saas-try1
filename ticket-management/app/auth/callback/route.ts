@@ -65,11 +65,8 @@ export async function GET(request: Request) {
       .eq("id", session.user.id)
       .single();
 
-    if (profileError && profileError.code !== "PGRST116") {
-      console.error("Error checking profile:", profileError);
-    }
-
-    if (!existingProfile) {
+    if (profileError && profileError.code === "PGRST116") {
+      // Profile doesn't exist, create it
       const { error: insertError } = await supabase
         .from("profiles")
         .insert([
@@ -85,10 +82,27 @@ export async function GET(request: Request) {
       if (insertError) {
         console.error("Error creating profile:", insertError);
       }
+    } else if (profileError) {
+      console.error("Error checking profile:", profileError);
     }
 
     // Successful login - redirect to kitchen page
-    return NextResponse.redirect(new URL("/kitchen", requestUrl.origin));
+    const response = NextResponse.redirect(
+      new URL("/kitchen", requestUrl.origin)
+    );
+
+    // Set cookie expiration to match session
+    if (session.expires_at) {
+      const expiresIn = new Date(session.expires_at * 1000);
+      response.cookies.set("session", "active", {
+        expires: expiresIn,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+      });
+    }
+
+    return response;
   } catch (error) {
     console.error("Error in auth callback:", error);
     return NextResponse.redirect(
