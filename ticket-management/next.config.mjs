@@ -29,6 +29,12 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
   },
+  env: {
+    NEXT_PUBLIC_API_URL:
+      process.env.NODE_ENV === "production"
+        ? "https://ticket-saas-backend.onrender.com/api"
+        : "http://localhost:3001/api",
+  },
 };
 
 mergeConfig(nextConfig, userConfig);
