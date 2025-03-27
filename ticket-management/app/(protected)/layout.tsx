@@ -16,7 +16,7 @@ export default function ProtectedLayout({
 
   // Determine active view based on pathname
   const getActiveView = (path: string) => {
-    if (path === "/") return "dashboard";
+    if (path === "/dashboard") return "dashboard";
     if (path === "/kitchen") return "kitchen";
     return "";
   };
@@ -30,27 +30,33 @@ export default function ProtectedLayout({
 
   const handleNavigation = (view: string) => {
     setActiveView(view);
-    // Let the sidebar handle the actual navigation
+    if (view === "dashboard") {
+      router.push("/dashboard");
+    } else {
+      router.push(`/${view}`);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-gray-50">
       <Header
         isExpanded={isSidebarExpanded}
         onToggle={() => setIsSidebarExpanded(!isSidebarExpanded)}
       />
-      <Sidebar
-        isExpanded={isSidebarExpanded}
-        activeView={activeView}
-        onNavigate={handleNavigation}
-      />
-      <main
-        className={`transition-all duration-300 ease-in-out ${
-          isSidebarExpanded ? "ml-52" : "ml-12"
-        } pt-16`}
-      >
-        {children}
-      </main>
+      <div className="flex flex-1">
+        <Sidebar
+          isExpanded={isSidebarExpanded}
+          activeView={activeView}
+          onNavigate={handleNavigation}
+        />
+        <main
+          className={`flex-1 transition-all duration-300 ease-in-out ${
+            isSidebarExpanded ? "ml-52" : "ml-12"
+          } pt-16`}
+        >
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

@@ -16,15 +16,7 @@ export default function Sidebar({
   const router = useRouter();
 
   const handleNavigation = (view: string) => {
-    // First update the active view
     onNavigate(view);
-
-    // Then navigate
-    if (view === "dashboard") {
-      router.push("/");
-    } else {
-      router.push(`/${view}`);
-    }
   };
 
   return (
