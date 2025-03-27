@@ -274,17 +274,36 @@ export default function TicketScreen() {
   const { translations } = useLanguage();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [showNewTicketForm, setShowNewTicketForm] = useState(false);
-  const [filterType, setFilterType] = useState<FilterType>("open");
+  const [filterType, setFilterType] = useState<FilterType>(() => {
+    if (typeof window === "undefined") return "open";
+    const savedFilter = localStorage.getItem("ticketFilterType");
+    return (savedFilter as FilterType) || "open";
+  });
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return localStorage.getItem("ticketSearchQuery") || "";
+  });
   const [newTickets, setNewTickets] = useState<Set<string>>(new Set());
   const [showImageModal, setShowImageModal] = useState(false);
-  const [currentSortField, setCurrentSortField] =
-    useState<SortField>("created_at");
+  const [currentSortField, setCurrentSortField] = useState<SortField>(() => {
+    if (typeof window === "undefined") return "created_at";
+    return (
+      (localStorage.getItem("ticketSortField") as SortField) || "created_at"
+    );
+  });
   const [currentSortDirection, setCurrentSortDirection] =
-    useState<SortDirection>("desc");
-  const [hasBeenSorted, setHasBeenSorted] = useState(false);
+    useState<SortDirection>(() => {
+      if (typeof window === "undefined") return "desc";
+      return (
+        (localStorage.getItem("ticketSortDirection") as SortDirection) || "desc"
+      );
+    });
+  const [hasBeenSorted, setHasBeenSorted] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("ticketHasBeenSorted") === "true";
+  });
   const [newTicket, setNewTicket] = useState<NewTicketForm>({
     submitter_name: "",
     title: "",
@@ -305,18 +324,60 @@ export default function TicketScreen() {
   const [columnCount, setColumnCount] = useState(0);
   const gridRef = useRef<HTMLDivElement>(null);
 
-  // Load tickets from API on component mount
+  // Load tickets from API and apply saved sort if exists
   useEffect(() => {
     const loadTickets = async () => {
       try {
         const data = await fetchTickets();
-        setTickets(data); // Remove sorting on initial load
+        if (hasBeenSorted && currentSortField && currentSortDirection) {
+          const sortedData = [...data].sort((a, b) => {
+            let comparison = 0;
+            switch (currentSortField) {
+              case "title":
+                comparison = a.title.localeCompare(b.title);
+                break;
+              case "submitter_name":
+                comparison = a.submitter_name.localeCompare(b.submitter_name);
+                break;
+              case "location":
+                comparison = a.location.localeCompare(b.location);
+                break;
+              case "priority": {
+                const priorityOrder: Record<string, number> = {
+                  high: 3,
+                  medium: 2,
+                  low: 1,
+                };
+                comparison =
+                  (priorityOrder[a.priority.toLowerCase()] ?? 0) -
+                  (priorityOrder[b.priority.toLowerCase()] ?? 0);
+                break;
+              }
+              case "created_at":
+                comparison =
+                  new Date(a.created_at).getTime() -
+                  new Date(b.created_at).getTime();
+                break;
+              default:
+                return 0;
+            }
+            return currentSortDirection === "asc" ? comparison : -comparison;
+          });
+          setTickets(
+            sortedData.map((ticket, index) => ({
+              ...ticket,
+              order: index,
+            }))
+          );
+        } else {
+          setTickets(data);
+        }
       } catch (error) {
         console.error("Failed to load tickets:", error);
       }
     };
     loadTickets();
-  }, []);
+  }, [currentSortField, currentSortDirection, hasBeenSorted]);
 
   // Function to check if title is truncated
   const checkTitleTruncation = useCallback(
@@ -512,8 +573,13 @@ export default function TicketScreen() {
     setHasBeenSorted(true);
   };
 
-  // Update the handleSort function
+  // Update the handleSort function to persist sort preferences
   const handleSort = (field: SortField, direction: SortDirection) => {
+    localStorage.setItem("ticketSortField", field);
+    localStorage.setItem("ticketSortDirection", direction);
+    localStorage.setItem("ticketHasBeenSorted", "true");
+    setCurrentSortField(field);
+    setCurrentSortDirection(direction);
     applySort(field, direction);
   };
 
@@ -606,10 +672,18 @@ export default function TicketScreen() {
     })
   );
 
-  // Update the filter change handler to maintain animations
+  // Update the filter change handler to persist filter preference
   const handleFilterChange = (newFilter: FilterType) => {
     if (newFilter === filterType) return;
+    localStorage.setItem("ticketFilterType", newFilter);
     setFilterType(newFilter);
+  };
+
+  // Update search query handler to persist search
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    localStorage.setItem("ticketSearchQuery", value);
+    setSearchQuery(value);
   };
 
   return (
@@ -662,7 +736,7 @@ export default function TicketScreen() {
                 type="text"
                 placeholder={translations.common.search}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearchChange}
                 className="pl-4 pr-10 py-2 border-2 border-gray-300 rounded-full w-[214px] text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               <svg
@@ -679,7 +753,12 @@ export default function TicketScreen() {
                 />
               </svg>
             </div>
-            <SortMenu onSort={handleSort} hasBeenSorted={hasBeenSorted} />
+            <SortMenu
+              onSort={handleSort}
+              hasBeenSorted={hasBeenSorted}
+              initialSortField={currentSortField}
+              initialSortDirection={currentSortDirection}
+            />
           </div>
           <div className="flex-1" />
           <button

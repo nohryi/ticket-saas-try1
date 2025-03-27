@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LanguageProvider } from "@/lib/i18n/LanguageContext";
+import { SupabaseAuthProvider } from "@/lib/auth/SupabaseAuthProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -37,7 +38,9 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <LanguageProvider>{children}</LanguageProvider>
+          <LanguageProvider>
+            <SupabaseAuthProvider>{children}</SupabaseAuthProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

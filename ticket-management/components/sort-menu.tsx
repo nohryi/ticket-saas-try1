@@ -16,6 +16,8 @@ interface SortOption {
 interface SortMenuProps {
   onSort: (field: SortField, direction: SortDirection) => void;
   hasBeenSorted?: boolean;
+  initialSortField?: SortField;
+  initialSortDirection?: SortDirection;
 }
 
 const sortOptions: SortOption[] = [
@@ -29,11 +31,14 @@ const sortOptions: SortOption[] = [
 export default function SortMenu({
   onSort,
   hasBeenSorted = false,
+  initialSortField = "created_at",
+  initialSortDirection = "desc",
 }: SortMenuProps) {
   const [showMenu, setShowMenu] = useState(false);
-  const [lastSortField, setLastSortField] = useState<SortField>("created_at");
+  const [lastSortField, setLastSortField] =
+    useState<SortField>(initialSortField);
   const [lastSortDirection, setLastSortDirection] =
-    useState<SortDirection>("desc");
+    useState<SortDirection>(initialSortDirection);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -86,7 +91,7 @@ export default function SortMenu({
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M3 4h13M3 8h9m-9 4h6m4 12V8m0 0l4 4m-4-4l-4 4"
+                  d="M3 4h13M3 8h9m-9 4h6m4 6V12m0 0l4 4m-4-4l-4 4"
                 />
               </svg>
             ) : (

@@ -2,9 +2,35 @@
 
 import { useState } from "react";
 import { currentUser } from "../lib/mock-users";
+import { supabase } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 export default function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    try {
+      // Clear Supabase session
+      await supabase.auth.signOut();
+
+      // Clear any localStorage data
+      if (typeof window !== "undefined") {
+        localStorage.clear();
+      }
+
+      // Clear any sessionStorage data
+      if (typeof window !== "undefined") {
+        sessionStorage.clear();
+      }
+
+      // Force a hard reload to clear all client state
+      router.push("/login");
+      router.refresh();
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
 
   return (
     <div className="relative">
@@ -39,12 +65,12 @@ export default function UserMenu() {
           >
             Settings
           </a>
-          <a
-            href="#signout"
-            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          <button
+            onClick={handleSignOut}
+            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
           >
             Sign out
-          </a>
+          </button>
         </div>
       )}
     </div>
