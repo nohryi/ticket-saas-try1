@@ -13,7 +13,7 @@ const port = process.env.PORT || 3001;
 const allowedOrigins =
   process.env.NODE_ENV === "production"
     ? [process.env.ALLOWED_ORIGINS || "https://ticket-saas-try1.vercel.app"]
-    : ["http://localhost:3000"];
+    : ["http://localhost:3000", "https://ticket-saas-try1.vercel.app"];
 
 console.log("Allowed Origins:", allowedOrigins);
 console.log("Environment:", process.env.NODE_ENV);

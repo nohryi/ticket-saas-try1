@@ -1,10 +1,11 @@
 import { Ticket } from "./types";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://ticket-saas-backend.onrender.com/api";
 
 export async function fetchTickets(): Promise<Ticket[]> {
-  const response = await fetch(`${API_BASE_URL}/tickets`);
+  const response = await fetch(`${API_URL}/tickets`);
   if (!response.ok) {
     throw new Error("Failed to fetch tickets");
   }
@@ -16,7 +17,7 @@ export async function fetchTickets(): Promise<Ticket[]> {
 }
 
 export async function fetchTicket(id: string): Promise<Ticket> {
-  const response = await fetch(`${API_BASE_URL}/tickets/${id}`);
+  const response = await fetch(`${API_URL}/tickets/${id}`);
   if (!response.ok) {
     throw new Error("Failed to fetch ticket");
   }
@@ -27,7 +28,7 @@ export async function updateTicketStatus(
   ticketId: string,
   status: "open" | "completed" | "in_progress"
 ): Promise<Ticket> {
-  const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}/status`, {
+  const response = await fetch(`${API_URL}/tickets/${ticketId}/status`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -43,7 +44,7 @@ export async function updateTicketStatus(
 export async function createTicket(
   ticketData: Omit<Ticket, "id" | "created_at" | "updated_at">
 ): Promise<Ticket> {
-  const response = await fetch(`${API_BASE_URL}/tickets`, {
+  const response = await fetch(`${API_URL}/tickets`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -59,7 +60,7 @@ export async function createTicket(
 export async function updateTicketOrder(
   tickets: { id: string; order: number }[]
 ): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/tickets/order`, {
+  const response = await fetch(`${API_URL}/tickets/order`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
