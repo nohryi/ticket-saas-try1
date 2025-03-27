@@ -20,6 +20,7 @@ import {
 import { formatDate } from "@/lib/utils";
 import SelectedTicketModal from "@/components/selected-ticket-modal";
 import SortMenu, { SortField, SortDirection } from "@/components/sort-menu";
+import ProfileMenu from "@/components/profile-menu";
 import {
   DndContext,
   closestCenter,
@@ -687,206 +688,224 @@ export default function TicketScreen() {
   };
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      <div className="flex-none p-4 bg-white">
-        {/* Header content */}
-        <div className="flex items-center gap-4">
-          <div className="flex gap-2">
-            <button
-              onClick={() => handleFilterChange("all")}
-              className={`px-4 py-2 rounded-full text-sm font-medium ${
-                filterType === "all"
-                  ? "bg-blue-500 text-white"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              <span className="inline-flex items-center gap-1 ltr:flex-row rtl:flex-row-reverse">
-                <span>{translations.tickets.filters.all}</span>
-                <span dir="ltr">({allCount})</span>
-              </span>
-            </button>
-            <button
-              onClick={() => handleFilterChange("open")}
-              className={`px-4 py-2 rounded-full text-sm font-medium ${
-                filterType === "open"
-                  ? "bg-blue-500 text-white"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              <span className="inline-flex items-center gap-1 ltr:flex-row rtl:flex-row-reverse">
-                <span>{translations.tickets.filters.open}</span>
-                <span dir="ltr">({openCount})</span>
-              </span>
-            </button>
-            <button
-              onClick={() => handleFilterChange("completed")}
-              className={`px-4 py-2 rounded-full text-sm font-medium ${
-                filterType === "completed"
-                  ? "bg-blue-500 text-white"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              <span className="inline-flex items-center gap-1 ltr:flex-row rtl:flex-row-reverse">
-                <span>{translations.tickets.filters.completed}</span>
-                <span dir="ltr">({completedCount})</span>
-              </span>
-            </button>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder={translations.common.search}
-                value={searchQuery}
-                onChange={handleSearchChange}
-                className="pl-4 pr-10 py-2 border-2 border-gray-300 rounded-full w-[214px] text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-              <svg
-                className="w-4 h-4 text-gray-500 absolute right-6 top-1/2 transform -translate-y-1/2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <h1 className="text-xl font-semibold text-gray-900">
+                Kitchen Display
+              </h1>
             </div>
-            <SortMenu
-              onSort={handleSort}
-              hasBeenSorted={hasBeenSorted}
-              initialSortField={currentSortField}
-              initialSortDirection={currentSortDirection}
-            />
           </div>
-          <div className="flex-1" />
-          <button
-            onClick={handleCreateNewTicket}
-            className="px-4 py-2 bg-blue-500 text-white rounded-full text-sm font-medium hover:bg-blue-600 transition-colors"
-          >
-            {translations.common.actions.create}
-          </button>
         </div>
-      </div>
+      </header>
 
-      <div
-        className="flex-1 overflow-y-scroll scrollbar-gutter-stable"
-        style={{
-          overscrollBehavior: "contain",
-          scrollbarGutter: "stable",
-        }}
-      >
-        <div className="px-4 pt-2">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={() => setIsDragging(true)}
-            onDragEnd={handleDragEnd}
-            onDragCancel={() => setIsDragging(false)}
-          >
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              <SortableContext
-                items={filteredTickets.map((t) => t.id)}
-                strategy={rectSortingStrategy}
-              >
-                {filteredTickets.map((ticket, index) => (
-                  <SortableTicket
-                    key={ticket.id}
-                    ticket={ticket}
-                    index={index}
-                    onTicketClick={handleTicketClick}
-                    onStatusUpdate={handleTicketStatusUpdate}
-                    translations={translations}
-                    onImageClick={(imageUrl) =>
-                      handleImageClick(imageUrl, ticket)
-                    }
+      {/* Main content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="h-full flex flex-col overflow-hidden">
+          <div className="flex-none p-4">
+            {/* Header content */}
+            <div className="flex items-center gap-4">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleFilterChange("all")}
+                  className={`px-4 py-2 rounded-full text-sm font-medium ${
+                    filterType === "all"
+                      ? "bg-blue-500 text-white"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  <span className="inline-flex items-center gap-1 ltr:flex-row rtl:flex-row-reverse">
+                    <span>{translations.tickets.filters.all}</span>
+                    <span dir="ltr">({allCount})</span>
+                  </span>
+                </button>
+                <button
+                  onClick={() => handleFilterChange("open")}
+                  className={`px-4 py-2 rounded-full text-sm font-medium ${
+                    filterType === "open"
+                      ? "bg-blue-500 text-white"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  <span className="inline-flex items-center gap-1 ltr:flex-row rtl:flex-row-reverse">
+                    <span>{translations.tickets.filters.open}</span>
+                    <span dir="ltr">({openCount})</span>
+                  </span>
+                </button>
+                <button
+                  onClick={() => handleFilterChange("completed")}
+                  className={`px-4 py-2 rounded-full text-sm font-medium ${
+                    filterType === "completed"
+                      ? "bg-blue-500 text-white"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  <span className="inline-flex items-center gap-1 ltr:flex-row rtl:flex-row-reverse">
+                    <span>{translations.tickets.filters.completed}</span>
+                    <span dir="ltr">({completedCount})</span>
+                  </span>
+                </button>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder={translations.common.search}
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    className="pl-4 pr-10 py-2 border-2 border-gray-300 rounded-full w-[214px] text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
-                ))}
-              </SortableContext>
+                  <svg
+                    className="w-4 h-4 text-gray-500 absolute right-6 top-1/2 transform -translate-y-1/2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+                <SortMenu
+                  onSort={handleSort}
+                  hasBeenSorted={hasBeenSorted}
+                  initialSortField={currentSortField}
+                  initialSortDirection={currentSortDirection}
+                />
+              </div>
+              <div className="flex-1" />
+              <button
+                onClick={handleCreateNewTicket}
+                className="px-4 py-2 bg-blue-500 text-white rounded-full text-sm font-medium hover:bg-blue-600 transition-colors"
+              >
+                {translations.common.actions.create}
+              </button>
             </div>
-          </DndContext>
-        </div>
-      </div>
+          </div>
 
-      {/* Image Modal */}
-      {selectedImage && (
-        <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] p-4"
-          onClick={() => {
-            setSelectedImage(null);
-            setShowImageModal(false);
-          }}
-        >
           <div
-            className="relative rounded-lg overflow-hidden"
-            style={{ width: "407px", maxWidth: "407px" }}
-            onClick={(e) => e.stopPropagation()}
+            className="flex-1 overflow-y-scroll scrollbar-gutter-stable"
+            style={{
+              overscrollBehavior: "contain",
+              scrollbarGutter: "stable",
+            }}
           >
-            <img
-              src={selectedImage}
-              alt="Issue Details"
-              className="w-[407px] max-w-[407px] h-auto object-contain bg-white"
-              style={{ width: "407px", maxWidth: "407px" }}
-            />
-            <button
-              className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-full p-1.5 shadow-lg hover:bg-white transition-colors"
-              onClick={(e) => {
-                e.stopPropagation();
+            <div className="px-4 pt-2">
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragStart={() => setIsDragging(true)}
+                onDragEnd={handleDragEnd}
+                onDragCancel={() => setIsDragging(false)}
+              >
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                  <SortableContext
+                    items={filteredTickets.map((t) => t.id)}
+                    strategy={rectSortingStrategy}
+                  >
+                    {filteredTickets.map((ticket, index) => (
+                      <SortableTicket
+                        key={ticket.id}
+                        ticket={ticket}
+                        index={index}
+                        onTicketClick={handleTicketClick}
+                        onStatusUpdate={handleTicketStatusUpdate}
+                        translations={translations}
+                        onImageClick={(imageUrl) =>
+                          handleImageClick(imageUrl, ticket)
+                        }
+                      />
+                    ))}
+                  </SortableContext>
+                </div>
+              </DndContext>
+            </div>
+          </div>
+
+          {/* Image Modal */}
+          {selectedImage && (
+            <div
+              className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] p-4"
+              onClick={() => {
                 setSelectedImage(null);
                 setShowImageModal(false);
               }}
             >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              <div
+                className="relative rounded-lg overflow-hidden"
+                style={{ width: "407px", maxWidth: "407px" }}
+                onClick={(e) => e.stopPropagation()}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
+                <img
+                  src={selectedImage}
+                  alt="Issue Details"
+                  className="w-[407px] max-w-[407px] h-auto object-contain bg-white"
+                  style={{ width: "407px", maxWidth: "407px" }}
                 />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
+                <button
+                  className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-full p-1.5 shadow-lg hover:bg-white transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedImage(null);
+                    setShowImageModal(false);
+                  }}
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
 
-      {/* Existing Ticket Modal */}
-      {selectedTicket && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[100]">
-          <div className="w-[300px]">
-            <ExistingTicket
-              ticket={selectedTicket}
-              onClose={() => {
-                setSelectedTicket(null);
-                if (!showImageModal) {
-                  setSelectedImage(null);
-                }
-              }}
-              onStatusUpdate={handleTicketStatusUpdate}
-            />
-          </div>
-        </div>
-      )}
+          {/* Existing Ticket Modal */}
+          {selectedTicket && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[100]">
+              <div className="w-[300px]">
+                <ExistingTicket
+                  ticket={selectedTicket}
+                  onClose={() => {
+                    setSelectedTicket(null);
+                    if (!showImageModal) {
+                      setSelectedImage(null);
+                    }
+                  }}
+                  onStatusUpdate={handleTicketStatusUpdate}
+                />
+              </div>
+            </div>
+          )}
 
-      {/* New Ticket Modal */}
-      {showNewTicketForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[100]">
-          <div className="bg-white rounded-lg w-full max-w-2xl">
-            <NewTicket
-              ticket={newTicket}
-              onInputChange={handleNewTicketInputChange}
-              onImageChange={handleImageChange}
-              onSubmit={handleSubmitNewTicket}
-              onCancel={handleCancelNewTicket}
-            />
-          </div>
+          {/* New Ticket Modal */}
+          {showNewTicketForm && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[100]">
+              <div className="bg-white rounded-lg w-full max-w-2xl">
+                <NewTicket
+                  ticket={newTicket}
+                  onInputChange={handleNewTicketInputChange}
+                  onImageChange={handleImageChange}
+                  onSubmit={handleSubmitNewTicket}
+                  onCancel={handleCancelNewTicket}
+                />
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </main>
     </div>
   );
 }

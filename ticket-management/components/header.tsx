@@ -3,7 +3,7 @@
 import Clock from "@/components/clock";
 import { LanguageSelector } from "@/components/language-selector";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
-import UserMenu from "./user-menu";
+import ProfileMenu from "@/components/profile-menu";
 import { Logo } from "./logo";
 
 interface HeaderProps {
@@ -44,7 +44,7 @@ export function Header({ isExpanded, onToggle }: HeaderProps) {
       <div className="flex items-center gap-4">
         <Clock />
         <LanguageSelector />
-        <UserMenu />
+        <ProfileMenu />
       </div>
     </header>
   );

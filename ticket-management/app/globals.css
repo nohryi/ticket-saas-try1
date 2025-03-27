@@ -152,20 +152,29 @@ html {
 
 /* Optional: Style the scrollbar for better visual consistency */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
+  background-color: transparent;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background-color: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 5px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #666;
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+}
+
+/* Hide scrollbar gutter */
+.scrollbar-gutter-stable {
+  scrollbar-gutter: stable;
+  background-color: rgb(249, 250, 251); /* matches bg-gray-50 */
 }
 
 /* ... rest of your existing global styles ... */
